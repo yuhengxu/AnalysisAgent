@@ -1,0 +1,484 @@
+%% ============================================================
+%% 国际油价月报 LaTeX 手工填写参考模板
+%% 程序化导出（月报中心 PDF/Word）使用 monthly_report_preamble.tex +
+%% report_latex.py 自动生成正文；本文件保留完整样例结构供手工排版参考。
+%% ============================================================
+
+\documentclass[12pt, a4paper]{article}
+
+% ---------- 字体与编码 ----------
+\usepackage{fontspec}           % XeLaTeX 字体支持
+\usepackage{xeCJK}              % 中文支持
+\setCJKmainfont{SimSun}         % 宋体（正文）；可换为 Source Han Serif CN 等
+\setCJKsansfont{SimHei}         % 黑体（标题）
+\setmainfont{Times New Roman}
+
+% ---------- 页面布局 ----------
+\usepackage[
+  a4paper,
+  top=2.54cm, bottom=2.54cm,
+  left=3.17cm, right=3.17cm
+]{geometry}
+\usepackage{setspace}
+\setstretch{1.4}
+
+% ---------- 颜色 ----------
+\usepackage{xcolor}
+\definecolor{cnoocblue}{RGB}{0, 70, 127}   % 中海油蓝（标题色）
+\definecolor{tableheadbg}{RGB}{0, 70, 127}
+\definecolor{tablerowodd}{RGB}{235, 241, 250}
+\definecolor{tableroweven}{RGB}{255, 255, 255}
+\definecolor{rulecolor}{RGB}{0, 70, 127}
+
+% ---------- 图表 ----------
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\captionsetup{
+  font=small,
+  labelfont=bf,
+  labelsep=space,
+  justification=centering
+}
+
+% ---------- 表格 ----------
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{longtable}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+% ---------- 标题样式 ----------
+\usepackage{titlesec}
+% 一级标题：黑体，居中，蓝色
+\titleformat{\section}[block]
+  {\centering\bfseries\large\color{cnoocblue}\CJKfamily{zhsf}}
+  {\chinese{section}、}{0.5em}{}
+\titlespacing{\section}{0pt}{18pt}{10pt}
+
+% 二级标题：黑体，左对齐，带括号编号
+\titleformat{\subsection}[block]
+  {\bfseries\normalsize\color{cnoocblue}\CJKfamily{zhsf}}
+  {（\chinese{subsection}）}{0.5em}{}
+\titlespacing{\subsection}{0pt}{12pt}{6pt}
+
+% 三级标题：黑体
+\titleformat{\subsubsection}[runin]
+  {\bfseries\normalsize\CJKfamily{zhsf}}
+  {\arabic{subsubsection}.}{0.5em}{}[~~]
+\titlespacing{\subsubsection}{0pt}{8pt}{4pt}
+
+% ---------- 页眉页脚 ----------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{gray}中国海油集团能源经济研究院}
+\fancyhead[R]{\small\color{gray}内部资料}
+\fancyfoot[C]{\small\thepage}
+
+% 首页用plain样式（不显示页眉）
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ---------- 列表 ----------
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=2em, itemsep=2pt, topsep=4pt}
+\setlist[enumerate]{leftmargin=2em, itemsep=2pt, topsep=4pt}
+
+% ---------- 超链接 ----------
+\usepackage[colorlinks=false, hidelinks]{hyperref}
+
+% ---------- 数学 ----------
+\usepackage{amsmath}
+
+% ---------- 其他工具包 ----------
+\usepackage{indentfirst}        % 首段缩进
+\setlength{\parindent}{2em}
+\usepackage{ulem}               % 下划线等修饰
+\usepackage{soul}
+\usepackage{dashrule}
+\usepackage{tcolorbox}          % 彩色文本框（摘要框）
+\tcbuselibrary{skins, breakable}
+
+% ============================================================
+%% ★ 每期修改区：填写本期元数据
+% ============================================================
+\newcommand{\ReportYear}{2026}              % 年份
+\newcommand{\ReportIssue}{1}                % 本年第几期
+\newcommand{\ReportTotalIssue}{52}          % 总第几期
+\newcommand{\ReportDate}{2026年1月6日}      % 发布日期
+\newcommand{\ReviewMonth}{2025年12月}       % 回顾月份
+\newcommand{\ForecastMonth}{2026年1月}      % 展望月份
+
+% 价格预测（基准情景）
+\newcommand{\BrentForecastMonth}{61}        % 当月预测均价
+\newcommand{\BrentForecastQ}{60}            % 当季预测均价
+\newcommand{\BrentForecastYear}{61}         % 全年预测均价
+
+% 回顾月实际均价
+\newcommand{\BrentAvgActual}{61.63}
+\newcommand{\WTIAvgActual}{57.87}
+\newcommand{\BrentMoMChg}{-2.03}
+\newcommand{\BrentMoMPct}{-3.19}
+\newcommand{\WTIMoMChg}{-1.61}
+\newcommand{\WTIMoMPct}{-2.71}
+
+% 执笔、审核人
+\newcommand{\Authors}{段绪强\quad 张\;夏\quad 孟星屹\quad 何萱\quad 刘畅\quad 王掣}
+\newcommand{\FirstReview}{潘继平\quad 王殿铭}
+\newcommand{\FinalReview}{王\;恺}
+\newcommand{\SignedBy}{白晓辉}
+
+% ============================================================
+\begin{document}
+\thispagestyle{plain}
+
+% ============================================================
+%% 封面头部
+% ============================================================
+\begin{center}
+  {\zihao{3}\bfseries\CJKfamily{zhsf}\color{cnoocblue}
+    中国海油集团能源经济研究院}\\[6pt]
+  \rule{\linewidth}{2pt}\\[4pt]
+  {\zihao{-2}\bfseries\CJKfamily{zhsf}\color{cnoocblue}
+    国际油价月报}\\[4pt]
+  \rule{\linewidth}{0.5pt}\\[6pt]
+  {\zihao{4}
+    \ReportYear{}年第\ReportIssue{}期（总\ReportTotalIssue{}期）}\\[4pt]
+  {\zihao{5}
+    能源经济与政策研究中心石油经济研究室\hfill \ReportDate}
+\end{center}
+
+\vspace{12pt}
+
+% ============================================================
+%% 内容摘要（彩色文本框）
+% ============================================================
+\begin{tcolorbox}[
+  title={\bfseries\CJKfamily{zhsf}\color{white} 内容摘要},
+  colback=white,
+  colframe=cnoocblue,
+  colbacktitle=cnoocblue,
+  fonttitle=\bfseries,
+  boxrule=0.8pt,
+  arc=2pt,
+  left=6pt, right=6pt, top=6pt, bottom=6pt
+]
+% ★ 填写摘要正文
+\ReviewMonth{}，国际油价窄幅震荡，Brent期货结算均价\BrentAvgActual{}美元/桶，环比下跌\BrentMoMChg{}美元/桶。主要影响因素包括：一是……；二是……；三是……
+
+展望\ForecastMonth{}，国际油价走势将受地缘局势、宏观经济预期及"OPEC+"产量动态等多重因素综合影响。基准情景下，\textbf{宏观经济：}……\textbf{石油需求：}……\textbf{石油供应：}……\textbf{石油库存：}……\textbf{金融政策：}……\textbf{地缘局势：}……
+
+\textbf{预计\ForecastMonth{}国际油价震荡下行，Brent原油期货结算均价\BrentForecastMonth{}美元/桶；一季度Brent原油期货结算均价\BrentForecastQ{}美元/桶；全年Brent原油期货结算均价\BrentForecastYear{}美元/桶。}
+\end{tcolorbox}
+
+\vspace{8pt}
+
+% ============================================================
+\section{\ReviewMonth{}原油市场回顾}
+% ============================================================
+
+\subsection{期货市场回顾}
+
+\ReviewMonth{}，国际油价窄幅震荡（图1-1），Brent期货结算均价\BrentAvgActual{}美元/桶，
+环比下跌\BrentMoMChg{}美元/桶，跌幅\BrentMoMPct{}\%；
+WTI期货结算均价\WTIAvgActual{}美元/桶，
+环比下跌\WTIMoMChg{}美元/桶，跌幅\WTIMoMPct{}\%（表1-1）。
+
+% ---- 图1-1 ----
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig1-1.pdf}
+  \caption{\ReviewMonth{}国际原油期货价格走势图}
+  \label{fig:1-1}
+\end{figure}
+{\small\color{gray}数据来源：CNEEI}
+
+\vspace{6pt}
+
+% ---- 表1-1 ----
+\begin{table}[H]
+  \centering
+  \caption{国际原油期货价格月度变化表（单位：美元/桶）}
+  \label{tab:1-1}
+  \small
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabularx}{0.85\linewidth}{L{4cm}CC}
+    \rowcolor{tableheadbg}
+    \color{white}\textbf{项目} & \color{white}\textbf{Brent} & \color{white}\textbf{WTI} \\
+    \rowcolor{tablerowodd}
+    月均价（美元/桶） & \BrentAvgActual{} & \WTIAvgActual{} \\
+    \rowcolor{tableroweven}
+    环比 & \BrentMoMPct{}\% & \WTIMoMPct{}\% \\
+    \rowcolor{tablerowodd}
+    同比 & —\% & —\% \\
+    \rowcolor{tableroweven}
+    最高/最低日均结算价 & —/— & —/— \\
+    \rowcolor{tablerowodd}
+    峰谷价差 & — & — \\
+    \bottomrule
+  \end{tabularx}
+  \\[4pt]
+  {\small\color{gray}\raggedright 数据来源：CNEEI}
+\end{table}
+
+% ---- 图1-2 期货月差结构 ----
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig1-2.pdf}
+  \caption{ICE Brent原油期货月差结构走势图（单位：美元/桶）}
+  \label{fig:1-2}
+\end{figure}
+{\small\color{gray}数据来源：ICE，CNEEI}
+
+% ★ 在此处填写期货市场分析文字
+
+\subsection{现货市场回顾}
+
+\subsubsection{Brent现货价格}
+\textbf{Brent现货价格走强。}Brent现货与期货价差环比变化……（图1-3）。
+% ★ 填写分析
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig1-3.pdf}
+  \caption{Brent期现货价格走势}
+  \label{fig:1-3}
+\end{figure}
+{\small\color{gray}数据来源：Platts}
+
+\subsubsection{Dubai现货价格}
+\textbf{Dubai现货价格走弱。}Brent现货与Dubai现货价差变化……（图1-4）。
+% ★ 填写分析
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig1-4.pdf}
+  \caption{Brent--Dubai现货价差走势}
+  \label{fig:1-4}
+\end{figure}
+{\small\color{gray}数据来源：Platts}
+
+\subsubsection{ESPO现货价格}
+\textbf{ESPO价格走弱。}Brent与ESPO价差环比变化……（图1-5）。
+% ★ 填写分析
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig1-5.pdf}
+  \caption{Brent--ESPO价差走势}
+  \label{fig:1-5}
+\end{figure}
+{\small\color{gray}数据来源：Platts}
+
+% ============================================================
+\section{\ForecastMonth{}国际油价影响因素}
+% ============================================================
+
+\subsection{全球经济形势}
+
+% ★ 填写宏观经济分析
+
+% ---- 表2-1 PMI ----
+\begin{table}[H]
+  \centering
+  \caption{全球主要经济体\ReviewMonth{} PMI}
+  \label{tab:2-1}
+  \small
+  \setlength{\tabcolsep}{6pt}
+  \begin{tabularx}{\linewidth}{llCCC}
+    \rowcolor{tableheadbg}
+    \color{white}\textbf{PMI} & & \color{white}\textbf{美国} & \color{white}\textbf{欧元区} & \color{white}\textbf{中国} \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{综合} & 初值 & — & — & — \\
+    \rowcolor{tableroweven}
+    & 环比变化（\%） & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{制造业} & 终值 & — & — & — \\
+    \rowcolor{tableroweven}
+    & 环比变化（\%） & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{服务业} & 初值 & — & — & — \\
+    \rowcolor{tableroweven}
+    & 环比变化（\%） & — & — & — \\
+    \bottomrule
+  \end{tabularx}
+  \\[4pt]
+  {\small\color{gray}\raggedright 数据来源：S\&P，国家统计局}
+\end{table}
+
+\subsection{全球石油需求}
+% ★ 填写需求分析
+
+\subsection{全球石油供应}
+% ★ 填写供应分析（OPEC+及非OPEC）
+
+% ---- 表2-2 供需预测 ----
+\begin{table}[H]
+  \centering
+  \caption{主要机构对\ReportYear{}年石油供需的预测（单位：百万桶/日）}
+  \label{tab:2-2}
+  \small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabularx}{\linewidth}{llCCCC}
+    \rowcolor{tableheadbg}
+    \color{white}\textbf{机构} & \color{white}\textbf{项目}
+    & \color{white}\textbf{一季度} & \color{white}\textbf{二季度}
+    & \color{white}\textbf{三季度} & \color{white}\textbf{四季度} \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{IEA}   & 供应 & — & — & — & — \\
+    \rowcolor{tableroweven}& 需求 & — & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{EIA}   & 供应 & — & — & — & — \\
+    \rowcolor{tableroweven}& 需求 & — & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{S\&P}  & 供应 & — & — & — & — \\
+    \rowcolor{tableroweven}& 需求 & — & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{WM}    & 供应 & — & — & — & — \\
+    \rowcolor{tableroweven}& 需求 & — & — & — & — \\
+    \rowcolor{tablerowodd}
+    \multirow{2}{*}{Rystad}& 供应 & — & — & — & — \\
+    \rowcolor{tableroweven}& 需求 & — & — & — & — \\
+    \bottomrule
+  \end{tabularx}
+  \\[4pt]
+  {\small\color{gray}\raggedright 数据来源：CNEEI整理}
+\end{table}
+
+\subsection{石油库存}
+% ★ 填写库存分析
+
+\subsection{金融市场与美元}
+% ★ 填写美元指数、利率分析
+
+\subsection{地缘局势}
+% ★ 填写地缘分析（委内瑞拉、俄乌、中东等）
+
+\subsection{期货持仓结构}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/fig2-1.pdf}
+  \caption{ICE Brent原油期货持仓者结构走势图}
+  \label{fig:2-1}
+\end{figure}
+{\small\color{gray}数据来源：ICE，CNEEI}
+
+% ★ 填写持仓分析
+
+% ============================================================
+\section{\ForecastMonth{}国际油价展望}
+% ============================================================
+
+\subsection{情景分析与预测}
+
+展望\ForecastMonth{}，国际油价走势将受地缘局势动态、宏观经济预期及"OPEC+"产量动态等多重因素综合影响。
+
+\textbf{基准情景。}% ★ 填写基准情景描述
+\textbf{预计\ForecastMonth{}国际油价震荡下行，Brent原油期货结算均价\BrentForecastMonth{}美元/桶}（表3-1）。
+
+\textbf{悲观情景。}% ★ 填写悲观情景描述
+
+\textbf{乐观情景。}% ★ 填写乐观情景描述
+
+% ---- 表3-1 情景预测 ----
+\begin{table}[H]
+  \centering
+  \caption{Brent油价走势情景预测（单位：美元/桶）}
+  \label{tab:3-1}
+  \small
+  \setlength{\tabcolsep}{10pt}
+  \begin{tabularx}{0.75\linewidth}{lCCC}
+    \rowcolor{tableheadbg}
+    \color{white} & \color{white}\textbf{基准情景} & \color{white}\textbf{悲观情景} & \color{white}\textbf{乐观情景} \\
+    \rowcolor{tablerowodd}
+    \ForecastMonth{} & \BrentForecastMonth{} & — & — \\
+    \rowcolor{tableroweven}
+    \ReportYear{}年一季度 & \BrentForecastQ{} & — & — \\
+    \rowcolor{tablerowodd}
+    \ReportYear{}年全年 & \BrentForecastYear{} & — & — \\
+    \bottomrule
+  \end{tabularx}
+  \\[4pt]
+  {\small\color{gray}\raggedright 数据来源：CNEEI}
+\end{table}
+
+\subsection{国际油价研讨会预测结果}
+
+% ★ 填写研讨会结论
+
+\subsection{国际油价模型预测结果}
+
+% ★ 填写模型预测结果
+
+\subsection{有关机构预测结果}
+
+% ---- 表3-2 机构预测 ----
+\begin{table}[H]
+  \centering
+  \caption{咨询机构Brent油价预测（单位：美元/桶）}
+  \label{tab:3-2}
+  \small
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabularx}{\linewidth}{lCCC}
+    \rowcolor{tableheadbg}
+    \color{white} & \color{white}\textbf{S\&P} & \color{white}\textbf{Wood Mackenzie} & \color{white}\textbf{Rystad Energy} \\
+    \rowcolor{tablerowodd}
+    预测时间 & — & — & — \\
+    \rowcolor{tableroweven}
+    \ForecastMonth{} & — & — & — \\
+    \rowcolor{tablerowodd}
+    \ReportYear{}年一季度 & — & — & — \\
+    \rowcolor{tableroweven}
+    \ReportYear{}年全年 & — & — & — \\
+    \bottomrule
+  \end{tabularx}
+  \\[4pt]
+  {\small\color{gray}\raggedright 数据来源：S\&P、Wood Mackenzie、Rystad Energy}
+\end{table}
+
+\subsection{预测结论}
+
+基于基准情景，结合油价研讨会、国际油价模型和有关机构的预测结果，综合预测认为：\ForecastMonth{}Brent原油期货均价\textbf{\BrentForecastMonth{}美元/桶}，区间—美元/桶到—美元/桶；一季度Brent原油期货均价\textbf{\BrentForecastQ{}美元/桶}；全年Brent原油期货均价\textbf{\BrentForecastYear{}美元/桶}。
+
+% ============================================================
+%% 签署栏
+% ============================================================
+\vspace{16pt}
+\noindent
+执笔：\Authors\\
+初审：\FirstReview\\
+审核：\FinalReview
+
+\vspace{16pt}
+\noindent\rule{\linewidth}{0.8pt}
+
+% ---- 报送抄送 ----
+\begin{table}[H]
+  \small
+  \begin{tabularx}{\linewidth}{|X|}
+    \hline
+    \textbf{报送：}集团公司领导、集团办公室、规划计划部、财务资金部、质量健康安全环保部、法律与外事工作部、科技与数智化部、工程与物装部、审计部、党建工作部、企业管理部（政策研究室） \\
+    \hline
+    \textbf{抄送：}有限公司（勘探开发部、财务部、投资者关系部、国际公司）、气电集团、中海炼化、中海化学、中海油服、海油工程、海油发展、国际贸易公司（进出口公司）、财务公司、中海信托、中联公司、中海保险、投资控股（融资租赁） \\
+    \hline
+    中国海油集团能源经济研究院\hfill \ReportDate{}印发 \\
+    \hline
+  \end{tabularx}
+\end{table}
+
+\vspace{6pt}
+\noindent 签发：\SignedBy
+
+\end{document}

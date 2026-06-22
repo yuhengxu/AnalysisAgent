@@ -1,0 +1,31 @@
+services:
+  backend:
+    build: ./backend
+    container_name: energy-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Shanghai
+      - DATABASE_URL=sqlite:////app/db/energy_platform.db
+      # 大模型：在宿主机环境或 .env 中设置 DEEPSEEK_API_KEY 后注入
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-deepseek}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_BASE_URL=${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-chat}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost
+    volumes:
+      - ./data:/app/data
+      - ./db:/app/db
+      - ./logs:/app/logs
+      - ./yuebao:/app/yuebao:ro
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: energy-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

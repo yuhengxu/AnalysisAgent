@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/.venv/
+.venv/
+
+# Build
+frontend/dist/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# Data & DB
+data/
+db/
+logs/
+backend/logs/
+backend/data/exports/
+*.db
+
+# Env
+.env
+backend/.env
+
+# IDE & Cursor
+.vscode/
+.idea/
+.cursor/debug*.log
+
+# Runtime
+*.pid
+
+# Large binaries (use external download)
+download/
