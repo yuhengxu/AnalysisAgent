@@ -2,14 +2,26 @@
 
 - **基址**：`/api/v1`（前端通过 Vite 代理到 `http://localhost:8000`）。
 - **健康检查**：`GET /health`（不带前缀，公开）。
-- **鉴权**：除 `/auth/login` 外，所有业务 API 需 `Authorization: Bearer <token>`；`/llm`、`/llm-logs` 需 admin 角色。
+- **鉴权**：除 `/auth/login` 外，所有业务 API 需 `Authorization: Bearer <token>`。
+  - **页面权限**：各业务模块 router 使用 `require_page(key)`（见 [17-用户管理与权限](./17-用户管理与权限.md)）。
+  - **管理员**：`/users/*`、`/llm`、`/llm-logs` 需 admin 角色。
 - 前端调用层：`frontend/src/api/client.ts`（所有请求集中于此）。
 
 ## 0. auth（登录）
-| 方法 | 路径 | 前端调用 |
-|------|------|----------|
-| POST | `/auth/login` | `login` |
-| GET | `/auth/me` | `getMe` |
+| 方法 | 路径 | 前端调用 | 说明 |
+|------|------|----------|------|
+| POST | `/auth/login` | `login` | 返回 `access_token` + `user.allowed_pages`；停用账号 403 |
+| GET | `/auth/me` | `getMe` | 刷新当前用户与页面权限 |
+
+## 0.1 users（用户管理 · admin）
+| 方法 | 路径 | 前端调用 | 说明 |
+|------|------|----------|------|
+| GET | `/users/page-options` | `getUserPageOptions` | 可勾选业务页面 |
+| GET | `/users` | `listUsers` | 用户列表 |
+| POST | `/users` | `createUser` | 创建普通用户，初始密码 `qwer1234` |
+| PUT | `/users/{id}` | `updateUser` | 修改页面权限 / 启停 |
+| DELETE | `/users/{id}` | `deleteUser` | 删除普通用户 |
+| POST | `/users/{id}/reset-password` | `resetUserPassword` | 重置为 `qwer1234` |
 
 ## 1. data（数据中心）
 | 方法 | 路径 | 请求 | 返回 | 前端调用 |
@@ -50,6 +62,8 @@
 | 方法 | 路径 | 前端调用 |
 |------|------|----------|
 | POST | `/prediction/generate` | `generatePrediction` |
+| POST | `/prediction/generate/async` | 异步生成 |
+| GET | `/prediction/generate/tasks/{task_id}` | 轮询进度（校验 task.user_id） |
 | GET | `/prediction` | `listPredictions` |
 | GET | `/prediction/{id}` | `getPrediction` |
 | PUT | `/prediction/{id}` | `updatePrediction` |
@@ -62,6 +76,8 @@
 | 方法 | 路径 | 前端调用 |
 |------|------|----------|
 | POST | `/reports/generate` | `generateReport` |
+| POST | `/reports/generate/async` | 异步生成 |
+| GET | `/reports/generate/tasks/{task_id}` | 轮询进度（校验 task.user_id） |
 | GET | `/reports` | `listReports` |
 | GET | `/reports/template` | — |
 | GET | `/reports/{id}` | `getReport` |

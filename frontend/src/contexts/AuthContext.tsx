@@ -9,6 +9,7 @@ interface AuthContextValue {
   login: (username: string, password: string) => Promise<void>
   logout: () => void
   isAdmin: boolean
+  canAccessPage: (page: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -53,6 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }, [])
 
+  const canAccessPage = useCallback(
+    (page: string) => user?.role === 'admin' || Boolean(user?.allowed_pages?.includes(page)),
+    [user],
+  )
+
   const value = useMemo(
     () => ({
       user,
@@ -61,8 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       isAdmin: user?.role === 'admin',
+      canAccessPage,
     }),
-    [user, token, loading, login, logout],
+    [user, token, loading, login, logout, canAccessPage],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

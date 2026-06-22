@@ -5,7 +5,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_page
 from app.core.timezone import format_beijing_iso
 from app.schemas.common import DataQueryParams
 from app.services.data_export import DataExportService
@@ -14,7 +14,7 @@ from app.services.data_query import DataQueryService
 from app.services.agency_forecast import AgencyForecastService
 from app.services.report_table_data import ReportTableDataService, ReviewPeriodMismatch, web_fetch_options
 
-router = APIRouter(prefix="/data", tags=["data"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/data", tags=["data"], dependencies=[Depends(require_page("data"))])
 
 
 @router.get("/datasets")

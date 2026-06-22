@@ -11,6 +11,7 @@ from datetime import datetime
 
 from app.core.database import SessionLocal
 from app.core.timezone import BEIJING_TZ, format_beijing_iso
+from app.models.user import User
 from app.schemas.common import PredictionGenerateRequest
 from app.services.prediction import PredictionService
 
@@ -25,6 +26,7 @@ class PredictionGenerateTask:
     message: str = ""
     result: dict[str, Any] | None = None
     error: str | None = None
+    user_id: int | None = None
     started_at: float = field(default_factory=time.time)
     finished_at: float | None = None
 
@@ -42,12 +44,17 @@ def _set_task(task_id: str, **kwargs: Any) -> None:
             setattr(task, key, value)
 
 
-def create_task(total_steps: int = 7, body: PredictionGenerateRequest | None = None) -> PredictionGenerateTask:
+def create_task(
+    total_steps: int = 7,
+    body: PredictionGenerateRequest | None = None,
+    user_id: int | None = None,
+) -> PredictionGenerateTask:
     if body and body.unrestricted_mode:
         total_steps = 1
     task = PredictionGenerateTask(
         id=uuid.uuid4().hex,
         total_steps=total_steps,
+        user_id=user_id,
         message="任务已创建，等待执行…",
     )
     with _lock:
@@ -88,6 +95,11 @@ def _run_task(task_id: str, body: PredictionGenerateRequest) -> None:
 
     db = SessionLocal()
     try:
+        task = get_task(task_id)
+        user = None
+        if task and task.user_id:
+            user = db.query(User).filter(User.id == task.user_id).first()
+
         result = PredictionService(db).generate(
             symbol=body.symbol,
             year=body.year,
@@ -99,6 +111,7 @@ def _run_task(task_id: str, body: PredictionGenerateRequest) -> None:
             on_progress=on_progress,
             trusted_sources_only=body.trusted_sources_only,
             unrestricted_mode=body.unrestricted_mode,
+            user=user,
         )
         _set_task(
             task_id,

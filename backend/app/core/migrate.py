@@ -70,3 +70,32 @@ def run_migrations(engine: Engine) -> None:
                     "ON report_table_snapshots (review_year, review_month)"
                 )
             )
+        if not _column_exists(engine, "users", "allowed_pages_json"):
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN allowed_pages_json TEXT DEFAULT '[]'")
+            )
+        if not _column_exists(engine, "users", "is_active"):
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1")
+            )
+        if not _column_exists(engine, "users", "updated_at"):
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN updated_at DATETIME")
+            )
+        conn.execute(
+            text(
+                """
+                UPDATE users
+                SET allowed_pages_json = :pages
+                WHERE role != 'admin'
+                  AND (
+                    allowed_pages_json IS NULL
+                    OR allowed_pages_json = ''
+                    OR allowed_pages_json = '[]'
+                  )
+                """
+            ),
+            {
+                "pages": '["dashboard","data","analysis","prediction","forecast","reports"]'
+            },
+        )

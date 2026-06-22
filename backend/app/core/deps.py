@@ -21,7 +21,20 @@ def get_current_user(
     user = db.get(User, int(payload["sub"]))
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户不存在")
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="账号已停用")
     return user
+
+
+def require_page(page_key: str):
+    def dep(user: User = Depends(get_current_user)) -> User:
+        if user.role == "admin":
+            return user
+        if page_key not in user.allowed_pages():
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权访问该页面")
+        return user
+
+    return dep
 
 
 def require_admin(user: User = Depends(get_current_user)) -> User:

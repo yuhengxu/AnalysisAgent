@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import require_page
 from app.services.forecast import ForecastService
 
-router = APIRouter(prefix="/forecast", tags=["forecast"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/forecast", tags=["forecast"], dependencies=[Depends(require_page("forecast"))])
 
 
 @router.post("/run")

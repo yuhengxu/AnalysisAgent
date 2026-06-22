@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_page
 from app.models.user import User
 from app.schemas.common import (
     PredictionGenerateRequest,
@@ -14,7 +14,7 @@ from app.services.prediction import PredictionService
 from app.services.prediction_tasks import create_task, get_task, start_task, task_to_dict
 from app.skills.sources import TRUSTED_SOURCES
 
-router = APIRouter(prefix="/prediction", tags=["prediction"])
+router = APIRouter(prefix="/prediction", tags=["prediction"], dependencies=[Depends(require_page("prediction"))])
 
 XLSX_MEDIA = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -52,7 +52,7 @@ def generate_prediction(
 @router.post("/generate/async")
 def generate_prediction_async(body: PredictionGenerateRequest, user: User = Depends(get_current_user)):
     """异步生成：立即返回 task_id，前端轮询 /generate/tasks/{task_id} 获取进度。"""
-    task = create_task(body=body)
+    task = create_task(body=body, user_id=user.id)
     start_task(task.id, body)
     return task_to_dict(task)
 
@@ -61,6 +61,8 @@ def generate_prediction_async(body: PredictionGenerateRequest, user: User = Depe
 def get_prediction_task(task_id: str, user: User = Depends(get_current_user)):
     task = get_task(task_id)
     if not task:
+        raise HTTPException(status_code=404, detail="任务不存在或已过期")
+    if task.user_id != user.id:
         raise HTTPException(status_code=404, detail="任务不存在或已过期")
     return task_to_dict(task)
 

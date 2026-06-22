@@ -67,9 +67,19 @@ class ReportService:
     # ------------------------------------------------------------------ #
     @staticmethod
     def _scope_query(query, user: User | None):
-        if user is None or user.role == "admin":
-            return query
+        if user is None:
+            return query.filter(False)
         return query.filter(Report.user_id == user.id)
+
+    def get_report(self, report_id: int, user: User | None = None) -> Report | None:
+        report = self.db.get(Report, report_id)
+        if not report:
+            return None
+        if user is None:
+            return None
+        if report.user_id != user.id:
+            return None
+        return report
 
     def generate_monthly_draft(
         self,
@@ -144,7 +154,7 @@ class ReportService:
         self.db.add(report)
         self.db.commit()
         self.db.refresh(report)
-        docx_path = self.export_docx(report.id)
+        docx_path = self.export_docx(report.id, user)
         report.docx_path = str(docx_path)
         self.db.commit()
         return {
@@ -181,14 +191,6 @@ class ReportService:
             }
             for r in rows
         ]
-
-    def get_report(self, report_id: int, user: User | None = None) -> Report | None:
-        report = self.db.get(Report, report_id)
-        if not report:
-            return None
-        if user and user.role != "admin" and report.user_id not in (user.id, None):
-            return None
-        return report
 
     def get_report_detail(self, report_id: int, user: User | None = None) -> dict[str, Any]:
         report = self.get_report(report_id, user)

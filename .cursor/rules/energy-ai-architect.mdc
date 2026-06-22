@@ -1,0 +1,124 @@
+---
+description: 能源 AI 数据分析平台 AI 架构师工作流 - 需求分析、领域规则、设计规范与自检
+alwaysApply: true
+---
+
+# 工作流（First Principle）
+
+任何需求进入后，**禁止立即写代码**。须按顺序执行：
+
+1. 需求澄清 → 2. 模块定位 → 3. 数据/权限影响 → 4. 接口与文档 → 5. 编码实现 → 6. 自检
+
+若涉及新表、新接口、新页面权限或跨用户数据访问，须先查阅 `docs/15-开发规范与模块边界.md` 与相关模块文档。
+
+> 宪法硬约束（分层、权限隔离、LLM 降级、系统表 snapshot 等）见 `project-constitution.mdc`。
+
+---
+
+# 平台架构规则
+
+| 层级 | 职责 |
+|---|---|
+| **前端** | React 页面 + `api/client.ts` + `AuthContext` / `PageRoute` |
+| **API** | FastAPI 路由，依赖注入 Session 与权限 |
+| **服务** | 业务逻辑、CRUD、导出、编排 skill |
+| **Skill** | 证据采集、LLM 调用、结构化产出、降级 |
+| **存储** | SQLite ORM + 文件系统 |
+
+原则：
+
+- 优先**模块化单体**，不为拆分而拆分微服务
+- 异步任务状态暂存进程内存；多 worker 须先迁移 DB/Redis
+- 新增 skill 走标准步骤（见 `docs/15` §3）
+
+---
+
+# 领域规则
+
+默认涉及角色：**admin**（管理员）、**user**（普通用户）。
+
+任何涉及月报/预测/用户数据的设计必须考虑：
+
+- 页面权限（`require_page`）
+- 用户数据隔离（`user_id`）
+- 异步任务归属（`task.user_id`）
+
+禁止默认让 admin 绕过月报/预测隔离，除非新增显式权限并在文档中定义。
+
+---
+
+# 两大核心交付物规则
+
+## 预测分析表
+
+- 因素清单固定于 `templates/prediction_table.py::PREDICTION_FACTORS`
+- 生成 → 落库 `predictions` → 前端编辑 → 导出 Excel
+- 改结构须同步：模板、skill prompt、导出、前端类型
+
+## 国际油价月报
+
+- 章节/表格模板固定于 `templates/monthly_report.py`
+- **6 张系统表**由数据中心 snapshot 预置，生成时只读加载
+- 图表 PNG 从落库数据渲染，不读 Excel
+- 生成 → 落库 `reports` → 章节编辑/Agent 修订 → 导出 Word/PDF/tex
+
+---
+
+# 大模型设计规则
+
+每个 skill 须能回答：
+
+1. 证据从哪来（DB / 可信源 / DeepSearch）
+2. LLM 填什么（不得填系统表 rows）
+3. 降级策略是什么
+4. 产出 JSON 结构是什么
+
+未回答以上问题，设计不完整。
+
+---
+
+# 数据设计规则
+
+新增/变更表时须输出：表用途、字段说明、主键、索引、与现有表关系。
+
+SQLite 轻量迁移走 `core/migrate.py` 补列风格；大变更考虑 Alembic（见 `docs/14`）。
+
+---
+
+# API 设计规则
+
+所有接口须定义：功能、权限（登录 / `require_page` / `require_admin`）、请求/返回、错误码。
+
+用户相关资源（月报、预测、异步 task）须校验归属；越权建议 404 而非 403。
+
+新增接口同步更新 `docs/10-API接口清单.md` 与 `frontend/src/api/client.ts`。
+
+---
+
+# 前端规则
+
+- 业务页面用 `PageRoute(pageKey)` 包装
+- 管理员页面用 `AdminRoute`
+- 导航按 `canAccessPage` 过滤
+- 新增 API 先写 `client.ts`，再在页面调用
+- 保持轻量：Tailwind + 组件内状态，无全局状态库
+
+---
+
+# 开发输出规则
+
+输出代码前须声明【依据文档】（README / GUIDE / docs/XX / plans/XX）。若无依据，明确标注为推测实现。
+
+---
+
+# 自检（Self Review）
+
+完成任务后执行：
+
+- **业务**：是否符合两大交付物流程
+- **权限**：前后端是否都做了页面/数据隔离
+- **LLM**：是否有降级；系统表是否未被 LLM 改写
+- **分层**：api/services/skills 是否越界
+- **文档**：表/接口/权限变更是否已同步 docs
+
+最后输出【风险清单】（如有），而非直接结束。

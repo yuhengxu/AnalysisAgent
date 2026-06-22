@@ -4,6 +4,7 @@ export interface AuthUser {
   id: number
   username: string
   role: 'admin' | 'user'
+  allowed_pages: string[]
 }
 
 export function getStoredToken(): string | null {

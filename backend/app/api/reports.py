@@ -3,14 +3,14 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_page
 from app.models.user import User
 from app.schemas.common import ReportGenerateRequest, ReportUpdateRequest
 from app.services.report import ReportService
 from app.services.report_latex import latex_tools_available
 from app.services.report_tasks import create_task, get_task, start_task, task_to_dict
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter(prefix="/reports", tags=["reports"], dependencies=[Depends(require_page("reports"))])
 
 
 @router.get("")
@@ -62,6 +62,8 @@ def generate_report_async(
 def get_report_task(task_id: str, user: User = Depends(get_current_user)):
     task = get_task(task_id)
     if not task:
+        raise HTTPException(status_code=404, detail="任务不存在或已过期")
+    if task.user_id != user.id:
         raise HTTPException(status_code=404, detail="任务不存在或已过期")
     return task_to_dict(task)
 

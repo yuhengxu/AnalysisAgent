@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, require_page
+from app.models.user import User
 from app.services.analytics import AnalyticsService
 
 router = APIRouter(prefix="/analytics", tags=["analytics"], dependencies=[Depends(get_current_user)])
@@ -15,6 +16,7 @@ def dashboard(
     start_date: date | None = None,
     end_date: date | None = None,
     db: Session = Depends(get_db),
+    user: User = Depends(require_page("dashboard")),
 ):
     return AnalyticsService(db).dashboard_summary(start_date, end_date)
 

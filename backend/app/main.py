@@ -14,7 +14,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import agent, analysis, analytics, auth, data, forecast, llm, llm_logs, prediction, reports
+from app.api import agent, analysis, analytics, auth, data, forecast, llm, llm_logs, prediction, reports, users
 from app.core.config import settings
 from app.core.database import SessionLocal, engine, init_db
 from app.core.logging import get_logger, setup_logging
@@ -55,6 +55,7 @@ def create_app() -> FastAPI:
 
     prefix = settings.api_prefix
     app.include_router(auth.router, prefix=prefix)
+    app.include_router(users.router, prefix=prefix)
     app.include_router(data.router, prefix=prefix)
     app.include_router(analysis.router, prefix=prefix)
     app.include_router(analytics.router, prefix=prefix)

@@ -663,11 +663,59 @@ export async function login(username: string, password: string) {
   return data as {
     access_token: string
     token_type: string
-    user: { id: number; username: string; role: 'admin' | 'user' }
+    user: { id: number; username: string; role: 'admin' | 'user'; allowed_pages: string[] }
   }
 }
 
 export async function getMe() {
   const { data } = await api.get('/auth/me')
-  return data as { id: number; username: string; role: 'admin' | 'user' }
+  return data as { id: number; username: string; role: 'admin' | 'user'; allowed_pages: string[] }
+}
+
+export interface UserPageOption {
+  key: string
+  label: string
+}
+
+export interface ManagedUser {
+  id: number
+  username: string
+  role: 'admin' | 'user'
+  allowed_pages: string[]
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export async function getUserPageOptions() {
+  const { data } = await api.get<UserPageOption[]>('/users/page-options')
+  return data
+}
+
+export async function listUsers() {
+  const { data } = await api.get<ManagedUser[]>('/users')
+  return data
+}
+
+export async function createUser(payload: { username: string; allowed_pages: string[] }) {
+  const { data } = await api.post<ManagedUser>('/users', payload)
+  return data
+}
+
+export async function updateUser(
+  id: number,
+  payload: { allowed_pages?: string[]; is_active?: boolean },
+) {
+  const { data } = await api.put<ManagedUser>(`/users/${id}`, payload)
+  return data
+}
+
+export async function deleteUser(id: number) {
+  const { data } = await api.delete(`/users/${id}`)
+  return data
+}
+
+export async function resetUserPassword(id: number) {
+  const { data } = await api.post(`/users/${id}/reset-password`)
+  return data as { id: number; status: string; initial_password: string }
 }

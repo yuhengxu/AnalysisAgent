@@ -67,9 +67,19 @@ class PredictionService:
     # ------------------------------------------------------------------ #
     @staticmethod
     def _scope_query(query, user: User | None):
-        if user is None or user.role == "admin":
-            return query
+        if user is None:
+            return query.filter(False)
         return query.filter(Prediction.user_id == user.id)
+
+    def get(self, pred_id: int, user: User | None = None) -> Prediction | None:
+        p = self.db.get(Prediction, pred_id)
+        if not p:
+            return None
+        if user is None:
+            return None
+        if p.user_id != user.id:
+            return None
+        return p
 
     def generate(
         self,
@@ -127,7 +137,7 @@ class PredictionService:
         self.db.add(pred)
         self.db.commit()
         self.db.refresh(pred)
-        detail = self.get_detail(pred.id)
+        detail = self.get_detail(pred.id, user)
         detail["total_steps"] = result.get("total_steps", 7)
         return detail
 
@@ -149,14 +159,6 @@ class PredictionService:
             }
             for r in rows
         ]
-
-    def get(self, pred_id: int, user: User | None = None) -> Prediction | None:
-        p = self.db.get(Prediction, pred_id)
-        if not p:
-            return None
-        if user and user.role != "admin" and p.user_id not in (user.id, None):
-            return None
-        return p
 
     def get_detail(self, pred_id: int, user: User | None = None) -> dict[str, Any]:
         p = self.get(pred_id, user)
