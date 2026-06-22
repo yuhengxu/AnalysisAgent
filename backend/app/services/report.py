@@ -340,7 +340,7 @@ class ReportService:
         convert_tex_to_docx(tex_path, out)
         return out
 
-    def export_docx(self, report_id: int, user: User | None = None, *, via_latex: bool = True) -> Path:
+    def export_docx(self, report_id: int, user: User | None = None, *, via_latex: bool = False) -> Path:
         tools = latex_tools_available()
         if via_latex and tools["pandoc"]:
             try:
