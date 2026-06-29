@@ -33,7 +33,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="glass w-full max-w-md rounded-2xl p-8">
         <div className="mb-6 text-center">
-          <img src="/logo.jpg" alt="logo" className="mx-auto mb-4 h-14 w-14 rounded-full object-cover" />
+          <img src="/lulu.jpg" alt="水豚噜噜" className="mx-auto mb-4 h-14 w-14 rounded-full object-cover" />
           <h1 className="text-xl font-semibold">能源行业 AI 数据分析平台</h1>
           <p className="mt-1 text-sm text-white/50">请登录后继续</p>
         </div>

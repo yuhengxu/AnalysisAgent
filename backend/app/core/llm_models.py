@@ -21,6 +21,24 @@ class LlmModelOption(TypedDict):
 # 火山方舟已验证可用的推理 model 字段（OpenAI 兼容 /chat/completions）
 VOLCENGINE_MODELS: list[LlmModelOption] = [
     {
+        "id": "doubao-seed-2-1-pro-260628",
+        "label": "Doubao-Seed-2.1-pro",
+        "family": "doubao",
+        "hint": "Seed 2.1 旗舰深度思考，Coding/Agent 长链路任务",
+    },
+    {
+        "id": "doubao-seed-2-1-turbo-260628",
+        "label": "Doubao-Seed-2.1-turbo",
+        "family": "doubao",
+        "hint": "Seed 2.1 低成本低时延版，效果比肩 Pro，适合规模化生产",
+    },
+    {
+        "id": "doubao-seed-evolving",
+        "label": "Doubao-Seed-Evolving",
+        "family": "doubao",
+        "hint": "动态迭代模型，统一 ID 始终调用最新版本",
+    },
+    {
         "id": "doubao-seed-2-0-pro-260215",
         "label": "Doubao-Seed-2.0-pro",
         "family": "doubao",

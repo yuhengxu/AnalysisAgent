@@ -130,6 +130,7 @@ def test_connection(
             model=model,
             temperature=0,
             max_tokens=32,
+            mode="normal",
         )
         duration = (time.time() - start) * 1000
         return {

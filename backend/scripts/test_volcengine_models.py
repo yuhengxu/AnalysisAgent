@@ -9,8 +9,11 @@ import time
 from app.core import llm
 from app.core.llm_models import VOLCENGINE_MODELS
 
-# 用户指定的四个方舟模型（model 字段已在本环境验证）
+# 方舟模型连通性测试清单（model 字段与 llm_models.VOLCENGINE_MODELS 对齐）
 TARGET_MODELS = [
+    ("Doubao-Seed-2.1-pro", "doubao-seed-2-1-pro-260628"),
+    ("Doubao-Seed-2.1-turbo", "doubao-seed-2-1-turbo-260628"),
+    ("Doubao-Seed-Evolving", "doubao-seed-evolving"),
     ("Doubao-Seed-2.0-pro", "doubao-seed-2-0-pro-260215"),
     ("Doubao-Seed-2.0-lite", "doubao-seed-2-0-lite-260215"),
     ("DeepSeek-V4-pro", "deepseek-v4-pro"),
