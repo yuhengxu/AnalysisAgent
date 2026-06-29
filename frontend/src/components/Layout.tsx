@@ -110,7 +110,7 @@ export default function Layout() {
       <header className="sticky top-0 z-20 border-b border-white/10 glass">
         <div className="mx-auto flex max-w-7xl flex-nowrap items-center gap-3 px-4 py-3 lg:gap-4 lg:px-6 lg:py-4">
           <div className="flex min-w-0 shrink-0 items-center gap-3">
-            <img src="/lulu.jpg" alt="水豚噜噜" className="h-9 w-9 shrink-0 rounded-full object-cover lg:h-10 lg:w-10" />
+            <img src="/logo3-1.png" alt="能源 AI 数据分析平台" className="h-9 w-9 shrink-0 rounded-full object-cover lg:h-10 lg:w-10" />
             <div className="min-w-0">
               <div className="truncate text-base font-semibold lg:text-lg">能源 AI 数据分析平台</div>
               <div className="hidden truncate text-xs text-white/60 xl:block">Energy Analysis Agent Platform</div>
